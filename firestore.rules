@@ -1,0 +1,128 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ─── HELPERS ───────────────────────────────────────────────────────────
+    function isAuth()         { return request.auth != null; }
+    function isOwner(uid)     { return request.auth.uid == uid; }
+    function getRole()        { return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role; }
+    function isSeeker()       { return isAuth() && getRole() == 'seeker'; }
+    function isEmployer()     { return isAuth() && getRole() == 'employer'; }
+    function isAdmin()        { return isAuth() && getRole() == 'admin'; }
+    function isVerified()     { return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isVerified == true; }
+
+    // ─── USERS ─────────────────────────────────────────────────────────────
+    match /users/{uid} {
+      // Anyone signed in can read basic profiles (needed for applicant views)
+      allow read:   if isAuth();
+      // Only the owner can write their own profile
+      allow create: if isAuth() && isOwner(uid);
+      allow update: if isAuth() && (isOwner(uid) || isAdmin());
+      allow delete: if isAdmin();
+    }
+
+    // ─── JOBS ──────────────────────────────────────────────────────────────
+    match /jobs/{jobId} {
+      // Public read for active jobs
+      allow read: if resource.data.status == 'active' || isAuth();
+      // Only verified employers can create/update their own jobs
+      allow create: if isEmployer();
+      allow update: if isAuth() && (request.auth.uid == resource.data.employerId || isAdmin());
+      allow delete: if isAdmin() || (isEmployer() && request.auth.uid == resource.data.employerId);
+    }
+
+    // ─── APPLICATIONS ──────────────────────────────────────────────────────
+    match /applications/{appId} {
+      // Candidate sees their own; employer sees apps for their jobs; admin sees all
+      allow read: if isAuth() && (
+        request.auth.uid == resource.data.candidateId ||
+        request.auth.uid == resource.data.employerId  ||
+        isAdmin()
+      );
+      // Any signed-in seeker can apply
+      allow create: if isSeeker() && request.auth.uid == request.resource.data.candidateId;
+      // Only employer or admin can update status
+      allow update: if isAuth() && (
+        request.auth.uid == resource.data.employerId || isAdmin()
+      );
+      allow delete: if isAdmin();
+    }
+
+    // ─── OFFER LETTERS ─────────────────────────────────────────────────────
+    match /offerLetters/{offerId} {
+      allow read: if isAuth() && (
+        request.auth.uid == resource.data.candidateId ||
+        request.auth.uid == resource.data.employerId  ||
+        isAdmin()
+      );
+      allow create: if isEmployer() && request.auth.uid == request.resource.data.employerId;
+      allow update: if isAuth() && (
+        request.auth.uid == resource.data.candidateId ||
+        request.auth.uid == resource.data.employerId  ||
+        isAdmin()
+      );
+      allow delete: if isAdmin();
+    }
+
+    // ─── RATINGS ───────────────────────────────────────────────────────────
+    match /ratings/{ratingId} {
+      // Ratings are public (drives trust)
+      allow read: if true;
+      // Only authenticated users can submit ratings
+      allow create: if isAuth() && request.auth.uid == request.resource.data.fromUid;
+      // No one edits a submitted rating (integrity)
+      allow update: if isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // ─── CONVERSATIONS / MESSAGES ──────────────────────────────────────────
+    match /conversations/{convoId} {
+      allow read, write: if isAuth() && request.auth.uid in resource.data.participants;
+      allow create: if isAuth() && request.auth.uid in request.resource.data.participants;
+
+      match /messages/{msgId} {
+        allow read:   if isAuth() && request.auth.uid in get(/databases/$(database)/documents/conversations/$(convoId)).data.participants;
+        allow create: if isAuth() && request.auth.uid in get(/databases/$(database)/documents/conversations/$(convoId)).data.participants && request.auth.uid == request.resource.data.senderId;
+        allow update, delete: if isAdmin();
+      }
+    }
+
+    // ─── LINKEDIN ACCOUNT MAPPING ──────────────────────────────────────────
+    match /linkedinAccounts/{sub} {
+      allow read, write: if isAdmin();
+      // Cloud Function has admin SDK access — bypasses these rules
+    }
+
+    // ─── SUPPORT TICKETS ───────────────────────────────────────────────────
+    match /supportTickets/{ticketId} {
+      allow read:   if isAuth() && (request.auth.uid == resource.data.fromUid || isAdmin());
+      allow create: if isAuth();
+      allow update: if isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // ─── ANNOUNCEMENTS ─────────────────────────────────────────────────────
+    match /announcements/{annoId} {
+      allow read:            if true;
+      allow create, update, delete: if isAdmin();
+    }
+
+    // ─── PLATFORM SETTINGS (admin only) ────────────────────────────────────
+    match /platformSettings/{settingId} {
+      allow read:            if isAuth();
+      allow write:           if isAdmin();
+    }
+
+    // ─── BOOST ORDERS ──────────────────────────────────────────────────────
+    match /boostOrders/{orderId} {
+      allow read: if isAuth() && (request.auth.uid == resource.data.employerId || isAdmin());
+      allow create: if isEmployer();
+      allow update: if isAdmin();
+    }
+
+    // ─── CATCH-ALL: Deny everything else ────────────────────────────────────
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

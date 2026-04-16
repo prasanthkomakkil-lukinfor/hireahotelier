@@ -1,0 +1,64 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    // ─── PROFILE PHOTOS ────────────────────────────────────────────────────
+    match /photos/{uid}/{fileName} {
+      allow read:  if true;  // Public profile photos
+      allow write: if request.auth.uid == uid
+                   && request.resource.size < 5 * 1024 * 1024   // Max 5 MB
+                   && request.resource.contentType.matches('image/.*');
+    }
+
+    // ─── VIDEO PROFILES ────────────────────────────────────────────────────
+    match /videos/{uid}/{fileName} {
+      allow read:  if request.auth != null;  // Authenticated users only
+      allow write: if request.auth.uid == uid
+                   && request.resource.size < 200 * 1024 * 1024  // Max 200 MB
+                   && (request.resource.contentType.matches('video/.*') ||
+                       request.resource.contentType == 'application/octet-stream');
+    }
+
+    // ─── HOTEL LOGOS ──────────────────────────────────────────────────────
+    match /logos/{uid}/{fileName} {
+      allow read:  if true;
+      allow write: if request.auth.uid == uid
+                   && request.resource.size < 3 * 1024 * 1024
+                   && request.resource.contentType.matches('image/.*');
+    }
+
+    // ─── RESUMES ──────────────────────────────────────────────────────────
+    match /resumes/{uid}/{fileName} {
+      allow read:  if request.auth != null;
+      allow write: if request.auth.uid == uid
+                   && request.resource.size < 10 * 1024 * 1024
+                   && (request.resource.contentType == 'application/pdf' ||
+                       request.resource.contentType.matches('application/.*'));
+    }
+
+    // ─── HOTEL VERIFICATION DOCUMENTS ─────────────────────────────────────
+    match /verificationDocs/{uid}/{fileName} {
+      allow read:  if request.auth != null && (request.auth.uid == uid || isAdmin());
+      allow write: if request.auth.uid == uid
+                   && request.resource.size < 20 * 1024 * 1024
+                   && (request.resource.contentType == 'application/pdf' ||
+                       request.resource.contentType.matches('image/.*'));
+    }
+
+    // ─── OFFER LETTER PDFS (Cloud Function writes) ────────────────────────
+    match /offers/{offerId}/{fileName} {
+      allow read:  if request.auth != null;
+      allow write: if false;  // Only Cloud Function (admin SDK) can write
+    }
+
+    // ─── CATCH-ALL: Deny everything else ──────────────────────────────────
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+
+    function isAdmin() {
+      return request.auth != null &&
+        firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+  }
+}

@@ -1,0 +1,114 @@
+{
+  "indexes": [
+    {
+      "collectionGroup": "jobs",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "status",   "order": "ASCENDING" },
+        { "fieldPath": "postedAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "jobs",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "status",           "order": "ASCENDING" },
+        { "fieldPath": "country",          "order": "ASCENDING" },
+        { "fieldPath": "postedAt",         "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "jobs",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "status",           "order": "ASCENDING" },
+        { "fieldPath": "type",             "order": "ASCENDING" },
+        { "fieldPath": "postedAt",         "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "jobs",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "status",             "order": "ASCENDING" },
+        { "fieldPath": "visaSponsorship",    "order": "ASCENDING" },
+        { "fieldPath": "postedAt",           "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "jobs",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "employerId", "order": "ASCENDING" },
+        { "fieldPath": "postedAt",   "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "applications",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "candidateId", "order": "ASCENDING" },
+        { "fieldPath": "appliedAt",   "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "applications",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "jobId",     "order": "ASCENDING" },
+        { "fieldPath": "appliedAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "applications",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "employerId", "order": "ASCENDING" },
+        { "fieldPath": "appliedAt",  "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "ratings",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "targetId",       "order": "ASCENDING" },
+        { "fieldPath": "targetType",     "order": "ASCENDING" },
+        { "fieldPath": "submittedAt",    "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "conversations",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "participants",    "arrayConfig": "CONTAINS" },
+        { "fieldPath": "lastMessageAt",   "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "offerLetters",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "candidateId", "order": "ASCENDING" },
+        { "fieldPath": "createdAt",   "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "offerLetters",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "employerId", "order": "ASCENDING" },
+        { "fieldPath": "createdAt",  "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "users",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "role",          "order": "ASCENDING" },
+        { "fieldPath": "isOpenToWork",  "order": "ASCENDING" },
+        { "fieldPath": "createdAt",     "order": "DESCENDING" }
+      ]
+    }
+  ],
+  "fieldOverrides": []
+}
