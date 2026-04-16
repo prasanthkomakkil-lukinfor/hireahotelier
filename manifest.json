@@ -1,0 +1,20 @@
+{
+  "name": "HireAHotelier.com",
+  "short_name": "HireAHotelier",
+  "description": "Direct hospitality hiring platform. No agents. No fees.",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0D1B3E",
+  "theme_color": "#C9A052",
+  "icons": [
+    { "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ],
+  "categories": ["business", "productivity"],
+  "lang": "en",
+  "shortcuts": [
+    { "name": "Browse Jobs",    "url": "/jobs",                "description": "Search hospitality jobs" },
+    { "name": "My Dashboard",  "url": "/candidate/dashboard", "description": "View your dashboard"     },
+    { "name": "Part-Time Shifts", "url": "/jobs?type=part-time", "description": "Find shifts near you" }
+  ]
+}
